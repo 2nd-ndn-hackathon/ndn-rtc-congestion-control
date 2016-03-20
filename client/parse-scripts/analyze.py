@@ -7,6 +7,8 @@ from enum import Enum
 from collections import OrderedDict
 import re
 
+inceptionTimestamp = None
+
 class StatKeyword(Enum):
   Dgen = 1
   Darr = 2
@@ -43,10 +45,10 @@ statRegexString = '(?P<stat_entry>'+statEntryRegex(StatKeyword.Dgen)+'|'+statEnt
 statRegex = re.compile(statRegexString)
 
 def closeStatBlock(timestamp):
-  global statBlock, runBlock, interestNo, dataNo, runNo, statBlockNum
+  global statBlock, runBlock, interestNo, dataNo, runNo, statBlockNum, inceptionTimestamp
   # write header
   if statBlockNum == 0 and noHeaders:
-    sys.stdout.write('ts\trun\tint\tdata\t')
+    sys.stdout.write('ts\trts\trun\tint\tdata\t')
     for key in statBlock.keys():
       sys.stdout.write(key)
       if statBlock.keys().index(key) != len(statBlock.keys())-1:
@@ -54,7 +56,7 @@ def closeStatBlock(timestamp):
     sys.stdout.write('\n')
   # write common stat
   if noHeaders:
-    sys.stdout.write(str(timestamp)+'\t'+str(runNo)+'\t'+str(interestNo)+'\t'+str(dataNo)+'\t')
+    sys.stdout.write(str(timestamp)+'\t'+str(timestamp-inceptionTimestamp)+'\t'+str(runNo)+'\t'+str(interestNo)+'\t'+str(dataNo)+'\t')
   else:
     sys.stdout.write('ts\t'+str(timestamp)+'\trun\t'+str(runNo)+'\tint\t'+str(interestNo)+'\tdata\t'+str(dataNo)+'\t')
   # write detailed stat
@@ -101,9 +103,10 @@ def closeRun(timestamp):
   runClosed = True
 
 def timeFunc(match):
-  global timeSlice
+  global timeSlice, inceptionTimestamp
   global lastTimestamp, runClosed, runStartTime, chaseTime
   timestamp = int(match.group('timestamp'))
+  if (inceptionTimestamp == None): inceptionTimestamp = timestamp
   if runClosed:
     if summaryFile:
       with open(summaryFile, "a") as f:
