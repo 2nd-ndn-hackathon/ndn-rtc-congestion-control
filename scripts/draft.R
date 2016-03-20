@@ -12,7 +12,7 @@ theme_set(theme_bw() + theme( strip.background=element_blank(), legend.key = ele
                               panel.border=element_blank(), axis.line = element_line(size=0.3)))
 
 # Read in data
-data = read.table("../results/run2/output2.csv", header=T)
+data = read.table("../results/run3/output3.csv", header=T)
 
 summary(data)
 

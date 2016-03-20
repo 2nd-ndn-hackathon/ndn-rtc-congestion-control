@@ -1,4 +1,4 @@
-ts	rts	run	int	data	Dgen	Darr	buf tar	buf est	buf play	rtt est	rtt prime	lambda d	lambda	rtx	recover	resc	lat est	rtt var
+ts	rts	run	int	data	Dgen	Darr	buf_tar	buf_est	buf_play	rtt_est	rtt_prime	lambda_d	lambda	rtx	recover	resc	lat_est	rtt_var
 1458512705107	19	0	155	155	0	0	0	0.0	0.0	0	0	0	0	0	0	0	0	0
 1458512705126	38	0	158	156	7.0	0.0	0	15.0	0.0	11.0	0.0	0	3.0	0	0	0	0	0.0
 1458512705146	58	0	159	157	7.5	9.0	0	50.0	10.0	10.75	0.0	0	2.0	0	0	0	0	0.5
