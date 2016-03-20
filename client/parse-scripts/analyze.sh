@@ -1,2 +1,2 @@
 #!/bin/sh
-./analyze.py $1 10 --no-headers
+./analyze.py $1 5 --no-headers

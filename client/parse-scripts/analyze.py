@@ -7,8 +7,6 @@ from enum import Enum
 from collections import OrderedDict
 import re
 
-inceptionTimestamp = None
-
 class StatKeyword(Enum):
   Dgen = 1
   Darr = 2
@@ -24,81 +22,101 @@ class StatKeyword(Enum):
   rtx = 12
   lat = 13
   rttVar = 14
+  unknown = 99
 
   def __str__(self):
-    return {StatKeyword.Dgen:'Dgen', StatKeyword.Darr:'Darr',\
+    return {StatKeyword.Dgen:'Dgen_ms', StatKeyword.Darr:'Darr_ms',\
+      StatKeyword.bufTarget:'buf_tar_ms', StatKeyword.bufEstimate:'buf_est_ms', StatKeyword.bufPlayable:'buf_play_ms',\
+      StatKeyword.rttEst:'rtt_est_ms', StatKeyword.rttPrime:'rtt_prime_ms',\
+      StatKeyword.lambdaD:'lambda_d', StatKeyword.lambdaC:'lambda',\
+      StatKeyword.rtx:'rtx_total', StatKeyword.rescued:'rescued_total', StatKeyword.recovered:'recovered_total',
+      StatKeyword.lat:'lat_est_sec', StatKeyword.rttVar:'rtt_var', StatKeyword.unknown:'unknown'}[self]
+
+statKeywordToEntryMap = {StatKeyword.Dgen:'Dgen', StatKeyword.Darr:'Darr',\
     StatKeyword.bufTarget:'buf tar', StatKeyword.bufEstimate:'buf est', StatKeyword.bufPlayable:'buf play',\
-    StatKeyword.rttEst:'rtt est', StatKeyword.rttPrime:'rtt prime',\
-    StatKeyword.lambdaD:'lambda d', StatKeyword.lambdaC:'lambda',\
+    StatKeyword.rttEst:'rtt est', StatKeyword.rttPrime:'rtt prime raw',\
+    StatKeyword.lambdaD:'lambda_d', StatKeyword.lambdaC:'lambda',\
     StatKeyword.rtx:'rtx', StatKeyword.rescued:'resc', StatKeyword.recovered:'recover',
-    StatKeyword.lat:'lat est', StatKeyword.rttVar:'rtt var'}[self]
+    StatKeyword.lat:'lat est', StatKeyword.rttVar:'rtt var'}
+statEntryToKeywordMap = {v: k for k, v in statKeywordToEntryMap.items()}
 
-def statEntryRegex(statEntry):
-  return str(statEntry)
+def statKeywordToEntry(kw):
+  global statKeywordToEntryMap
+  return statKeywordToEntryMap[kw]
 
-statRegexString = '(?P<stat_entry>'+statEntryRegex(StatKeyword.Dgen)+'|'+statEntryRegex(StatKeyword.Darr)+'|'+\
-  statEntryRegex(StatKeyword.bufTarget)+'|'+statEntryRegex(StatKeyword.bufEstimate)+'|'+statEntryRegex(StatKeyword.bufPlayable)+'|'+\
-  statEntryRegex(StatKeyword.rttEst)+'|'+statEntryRegex(StatKeyword.rttPrime)+'|'+\
-  statEntryRegex(StatKeyword.lambdaD)+'|'+statEntryRegex(StatKeyword.lambdaC)+'|'+\
-  statEntryRegex(StatKeyword.recovered)+'|'+statEntryRegex(StatKeyword.rescued)+'|'+statEntryRegex(StatKeyword.rtx)+'|'+\
-  statEntryRegex(StatKeyword.lat)+'|'+statEntryRegex(StatKeyword.rttVar)+')\\t(?P<value>[0-9.-]+)'
+def statEntryToKeyword(stat):
+  global statEntryToKeywordMap
+  if not stat in statEntryToKeywordMap.keys(): return StatKeyword.unknown
+  return statEntryToKeywordMap[stat]
+
+statRegexString = '(?P<stat_entry>'+statKeywordToEntry(StatKeyword.Dgen)+'|'+statKeywordToEntry(StatKeyword.Darr)+'|'+\
+  statKeywordToEntry(StatKeyword.bufTarget)+'|'+statKeywordToEntry(StatKeyword.bufEstimate)+'|'+statKeywordToEntry(StatKeyword.bufPlayable)+'|'+\
+  statKeywordToEntry(StatKeyword.rttPrime)+'|'+\
+  statKeywordToEntry(StatKeyword.lambdaD)+'|'+\
+  statKeywordToEntry(StatKeyword.recovered)+'|'+statKeywordToEntry(StatKeyword.rescued)+'|'+statKeywordToEntry(StatKeyword.rtx)+'|'+\
+  statKeywordToEntry(StatKeyword.lat)+')\\t(?P<value>[0-9.-]+)'
+
 statRegex = re.compile(statRegexString)
 
 def closeStatBlock(timestamp):
   global statBlock, runBlock, interestNo, dataNo, runNo, statBlockNum, inceptionTimestamp
+  global inceptionPacket, lastCloseTimestamp
   # write header
+  if lastCloseTimestamp == timestamp: return
   if statBlockNum == 0 and noHeaders:
-    sys.stdout.write('ts\trts\trun\tint\tdata\t')
+    sys.stdout.write('unix_ts_ms\trts_ms\trun\tint_seq\trelative_int_seq\tdata_seq\trelative_data_seq\t')
     for key in statBlock.keys():
-      sys.stdout.write(key)
+      sys.stdout.write(str(key))
       if statBlock.keys().index(key) != len(statBlock.keys())-1:
         sys.stdout.write('\t')
     sys.stdout.write('\n')
   # write common stat
   if noHeaders:
-    sys.stdout.write(str(timestamp)+'\t'+str(timestamp-inceptionTimestamp)+'\t'+str(runNo)+'\t'+str(interestNo)+'\t'+str(dataNo)+'\t')
-  else:
-    sys.stdout.write('ts\t'+str(timestamp)+'\trun\t'+str(runNo)+'\tint\t'+str(interestNo)+'\tdata\t'+str(dataNo)+'\t')
+    rts = (timestamp-inceptionTimestamp) if inceptionTimestamp != 0 else 0
+    rint = (interestNo-inceptionPacket) if inceptionPacket != 0 and interestNo > 0 else 0
+    rdata = (dataNo-inceptionPacket) if inceptionPacket != 0 else 0
+    sys.stdout.write(str(timestamp)+'\t'+str(rts)+'\t'+str(runNo)+'\t'+str(interestNo)+'\t'+\
+      str(rint)+'\t'+str(dataNo)+'\t'+str(rdata)+'\t')
   # write detailed stat
   for key in statBlock.keys():
-    values = statBlock[key]
-    mean = sum(values, 0.0) / len(values) if len(values) > 0 else 0
+    value = statBlock[key]
+    # mean = sum(values, 0.0) / len(values) if len(values) > 0 else 0
     if noHeaders:
-      sys.stdout.write(str(mean))
+      sys.stdout.write(str(value))
+      # sys.stdout.write(str(mean))
       if statBlock.keys().index(key) != len(statBlock.keys())-1:
         sys.stdout.write('\t')
-    else:
-      sys.stdout.write(key+'\t'+str(mean)+'\t')
-    if mean != 0: runBlock[key].append(mean)
-    statBlock[key] = [values[len(values)-1]] if len(values) else []
+    # if mean != 0: runBlock[key].append(mean)
+    # statBlock[key] = [values[len(values)-1]] if len(values) else []
   sys.stdout.write('\n')
   statBlockNum += 1
+  lastCloseTimestamp = timestamp
 
 def closeRun(timestamp):
   global summaryFile, runClosed
   global runNo, runBlock, lastTimestamp, runStartTime, chaseTime
   closeStatBlock(timestamp)
-  if summaryFile:
-    with open(summaryFile, "a") as f:
-      f.write('run '+str(runNo)+'\tts\t'+str(timestamp)+'\tchase time\t'+str(chaseTime)+'\trun time\t'+str(lastTimestamp-runStartTime)+'\t')
-      for key in runBlock.keys():
-        values = runBlock[key]
-        mean = sum(values, 0.0) / len(values) if len(values) > 0 else 0
-        f.write(key+'\t'+str(mean)+'\t')
-        runBlock[key] = []
-        statBlock[key] = []
-      f.write('\n')
-  else:
-    print "*** run summary"
-    sys.stdout.write('ts\t'+str(timestamp)+'\trun '+str(runNo)+'\tchase time\t'+str(chaseTime)+'\trun time\t'+str(lastTimestamp-runStartTime)+'\t')
-    for key in runBlock.keys():
-  	 values = runBlock[key]
-  	 mean = sum(values, 0.0) / len(values) if len(values) > 0 else 0
-  	 sys.stdout.write(key+'\t'+str(mean)+'\t')
-  	 runBlock[key] = []
-  	 statBlock[key] = []
-    sys.stdout.write('\n')
-    print "***"
+  # if summaryFile:
+  #   with open(summaryFile, "a") as f:
+  #     f.write('run '+str(runNo)+'\tts\t'+str(timestamp)+'\tchase time\t'+str(chaseTime)+'\trun time\t'+str(lastTimestamp-runStartTime)+'\t')
+  #     for key in runBlock.keys():
+  #       values = runBlock[key]
+  #       mean = sum(values, 0.0) / len(values) if len(values) > 0 else 0
+  #       f.write(key+'\t'+str(mean)+'\t')
+  #       runBlock[key] = []
+  #       statBlock[key] = []
+  #     f.write('\n')
+  # else:
+  #   print "*** run summary"
+  #   sys.stdout.write('ts\t'+str(timestamp)+'\trun '+str(runNo)+'\tchase time\t'+str(chaseTime)+'\trun time\t'+str(lastTimestamp-runStartTime)+'\t')
+  #   for key in runBlock.keys():
+  # 	 values = runBlock[key]
+  # 	 mean = sum(values, 0.0) / len(values) if len(values) > 0 else 0
+  # 	 sys.stdout.write(key+'\t'+str(mean)+'\t')
+  # 	 runBlock[key] = []
+  # 	 statBlock[key] = []
+  #   sys.stdout.write('\n')
+  #   print "***"
   runNo += 1
   runClosed = True
 
@@ -106,7 +124,7 @@ def timeFunc(match):
   global timeSlice, inceptionTimestamp
   global lastTimestamp, runClosed, runStartTime, chaseTime
   timestamp = int(match.group('timestamp'))
-  if (inceptionTimestamp == None): inceptionTimestamp = timestamp
+  if (inceptionTimestamp == 0): inceptionTimestamp = timestamp
   if runClosed:
     if summaryFile:
       with open(summaryFile, "a") as f:
@@ -121,7 +139,7 @@ def timeFunc(match):
   if runStartTime == 0:
     runStartTime = timestamp
   if timestamp-lastTimestamp >= timeSlice:
-  	closeStatBlock(timestamp)
+  	# closeStatBlock(timestamp)
   	lastTimestamp = timestamp
   return timestamp
 
@@ -130,13 +148,17 @@ def onRebuffering(timestamp, match, userData):
   return True
 
 def onInterest(timestamp, match, userData):
-  global interestNo
-  interestNo = match.group('frame_no')
+  global interestNo, inceptionPacket
+  interestNo = int(match.group('frame_no'))
+  if inceptionPacket == 0: inceptionPacket = int(interestNo)
+  closeStatBlock(timestamp)
   return True
 
 def onData(timestamp, match, userData):
-  global dataNo
-  dataNo = match.group('frame_no')
+  global dataNo, inceptionPacket
+  dataNo = int(match.group('frame_no'))
+  if inceptionPacket == 0: inceptionPacket = int(dataNo)
+  closeStatBlock(timestamp)
   return True
 
 def onChasingPhaseEnded(timestamp, match, userData):
@@ -147,13 +169,18 @@ def onChasingPhaseEnded(timestamp, match, userData):
 
 def onStatEntry(timestamp, match, userData):
   global statBlock, lastTimestamp
+  shouldCloseBlock = False
   for m in statRegex.finditer(match.group('message')):
     statEntry = m.group('stat_entry')
+    statKeyword = statEntryToKeyword(statEntry)
     value = float(m.group('value'))
-    if not statEntry in statBlock.keys():
-      print str(statEntry) + ' is not in stat block: '+str(statBlock)
+    if not statKeyword in statBlock.keys():
+      print match.string + '|' + statEntry + ' is not in stat block: '+str(statBlock.keys())
     else:
-      statBlock[statEntry].append(value)
+      # statBlock[statKeyword].append(value)
+      shouldCloseBlock = (statBlock[statKeyword] != value)
+      statBlock[statKeyword] = value
+  if shouldCloseBlock: closeStatBlock(timestamp)
   return True
 
 if __name__ == '__main__':
@@ -169,7 +196,10 @@ if __name__ == '__main__':
   if "--no-headers" in sys.argv:
     noHeaders = True
 
+  inceptionTimestamp = 0
+  inceptionPacket = 0
   runNo = 0
+  lastCloseTimestamp = 0
   lastTimestamp = 0
   interestNo = 0
   dataNo = 0
@@ -177,9 +207,14 @@ if __name__ == '__main__':
   runStartTime = 0
   runClosed = False
   statBlockNum = 0
-  runBlock = OrderedDict([(str(StatKeyword.Dgen),[]), (str(StatKeyword.Darr),[]), (str(StatKeyword.bufTarget),[]), (str(StatKeyword.bufEstimate),[]),\
-  (str(StatKeyword.bufPlayable),[]), (str(StatKeyword.rttEst),[]), (str(StatKeyword.rttPrime),[]), (str(StatKeyword.lambdaD),[]), (str(StatKeyword.lambdaC),[]),\
-  (str(StatKeyword.rtx), []), (str(StatKeyword.recovered), []), (str(StatKeyword.rescued), []), (str(StatKeyword.lat), []), (str(StatKeyword.rttVar), [])])
+
+  # runBlock = OrderedDict([(str(StatKeyword.Dgen),[]), (str(StatKeyword.Darr),[]), (str(StatKeyword.bufTarget),[]), (str(StatKeyword.bufEstimate),[]),\
+  # (str(StatKeyword.bufPlayable),[]), (str(StatKeyword.rttEst),[]), (str(StatKeyword.rttPrime),[]), (str(StatKeyword.lambdaD),[]), (str(StatKeyword.lambdaC),[]),\
+  # (str(StatKeyword.rtx), []), (str(StatKeyword.recovered), []), (str(StatKeyword.rescued), []), (str(StatKeyword.lat), [])])
+
+  runBlock = OrderedDict([(StatKeyword.Dgen,0.), (StatKeyword.Darr,0.), (StatKeyword.bufTarget,0), (StatKeyword.bufEstimate,0),\
+  (StatKeyword.bufPlayable,0), (StatKeyword.rttPrime,0), (StatKeyword.lambdaD,0), (StatKeyword.lambdaC,0),\
+  (StatKeyword.rtx, 0), (StatKeyword.recovered, 0), (StatKeyword.rescued, 0), (StatKeyword.lat, 0)])
   statBlock = runBlock.copy()
 
   chaseTrackRegexString = 'phase Chasing finished in (?P<chase_time>[0-9]+) msec'
