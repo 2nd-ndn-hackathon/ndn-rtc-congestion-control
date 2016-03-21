@@ -68,11 +68,10 @@ statRegexString = '(?P<stat_entry>'+statKeywordToEntry(StatKeyword.Dgen)+'|'+sta
 
 statRegex = re.compile(statRegexString)
 
-def closeStatBlock(timestamp):
+def printStatBlock(timestamp):
   global statBlock, runBlock, interestNo, dataNo, runNo, statBlockNum, inceptionTimestamp
-  global inceptionPacket, lastCloseTimestamp
+  global inceptionPacket, lastCloseTimestamp, delme
   # write header
-  if lastCloseTimestamp == timestamp: return
   if statBlockNum == 0 and noHeaders:
     sys.stdout.write('unix_ts_ms\trts_ms\trun\tint_seq\trelative_int_seq\tdata_seq\trelative_data_seq\t')
     for key in statBlock.keys():
@@ -102,31 +101,18 @@ def closeStatBlock(timestamp):
   statBlockNum += 1
   lastCloseTimestamp = timestamp
 
+def closeStatBlock(timestamp):
+  global lastCloseTimestamp, blockChange
+  if lastCloseTimestamp != timestamp:
+    if blockChange:
+      printStatBlock(lastCloseTimestamp)
+      blockChange = False
+    lastCloseTimestamp = timestamp
+
 def closeRun(timestamp):
   global summaryFile, runClosed
   global runNo, runBlock, lastTimestamp, runStartTime, chaseTime
   closeStatBlock(timestamp)
-  # if summaryFile:
-  #   with open(summaryFile, "a") as f:
-  #     f.write('run '+str(runNo)+'\tts\t'+str(timestamp)+'\tchase time\t'+str(chaseTime)+'\trun time\t'+str(lastTimestamp-runStartTime)+'\t')
-  #     for key in runBlock.keys():
-  #       values = runBlock[key]
-  #       mean = sum(values, 0.0) / len(values) if len(values) > 0 else 0
-  #       f.write(key+'\t'+str(mean)+'\t')
-  #       runBlock[key] = []
-  #       statBlock[key] = []
-  #     f.write('\n')
-  # else:
-  #   print "*** run summary"
-  #   sys.stdout.write('ts\t'+str(timestamp)+'\trun '+str(runNo)+'\tchase time\t'+str(chaseTime)+'\trun time\t'+str(lastTimestamp-runStartTime)+'\t')
-  #   for key in runBlock.keys():
-  # 	 values = runBlock[key]
-  # 	 mean = sum(values, 0.0) / len(values) if len(values) > 0 else 0
-  # 	 sys.stdout.write(key+'\t'+str(mean)+'\t')
-  # 	 runBlock[key] = []
-  # 	 statBlock[key] = []
-  #   sys.stdout.write('\n')
-  #   print "***"
   runNo += 1
   runClosed = True
 
@@ -158,28 +144,27 @@ def onRebuffering(timestamp, match, userData):
   return True
 
 def onInterest(timestamp, match, userData):
-  global interestNo, inceptionPacket
+  global interestNo, inceptionPacket, lastCloseTimestamp, blockChange
+  # if lastCloseTimestamp != timestamp: closeStatBlock(lastCloseTimestamp)
+  closeStatBlock(timestamp)
   interestNo = int(match.group('frame_no'))
   if inceptionPacket == 0: inceptionPacket = int(interestNo)
-  closeStatBlock(timestamp)
+  blockChange = True
   return True
 
 def onData(timestamp, match, userData):
-  global dataNo, inceptionPacket
+  global dataNo, inceptionPacket, blockChange
+  # if lastCloseTimestamp != timestamp: closeStatBlock(timestamp)
+  closeStatBlock(timestamp)
   dataNo = int(match.group('frame_no'))
   if inceptionPacket == 0: inceptionPacket = int(dataNo)
-  closeStatBlock(timestamp)
-  return True
-
-def onChasingPhaseEnded(timestamp, match, userData):
-  global runStartTime, chaseTime
-  chaseTime = match.group('chase_time')
-  #print "chase in "+str(chaseTime)
+  blockChange = True
   return True
 
 def onStatEntry(timestamp, match, userData):
-  global statBlock, lastTimestamp
+  global statBlock, lastTimestamp, blockChange
   shouldCloseBlock = False
+  # if lastCloseTimestamp != timestamp: closeStatBlock(timestamp)
   for m in statRegex.finditer(match.group('message')):
     statEntry = m.group('stat_entry')
     statKeyword = statEntryToKeyword(statEntry)
@@ -189,8 +174,17 @@ def onStatEntry(timestamp, match, userData):
     else:
       # statBlock[statKeyword].append(value)
       shouldCloseBlock = (statBlock[statKeyword] != value)
+      if shouldCloseBlock: closeStatBlock(timestamp)
       statBlock[statKeyword] = value
-  if shouldCloseBlock: closeStatBlock(timestamp)
+  if shouldCloseBlock: 
+    blockChange = True
+    # closeStatBlock(timestamp)
+  return True
+
+def onChasingPhaseEnded(timestamp, match, userData):
+  global runStartTime, chaseTime
+  chaseTime = match.group('chase_time')
+  #print "chase in "+str(chaseTime)
   return True
 
 if __name__ == '__main__':
@@ -207,6 +201,7 @@ if __name__ == '__main__':
     noHeaders = True
 
   inceptionTimestamp = 0
+  blockChange = False
   inceptionPacket = 0
   runNo = 0
   lastCloseTimestamp = 0
