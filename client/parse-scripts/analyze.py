@@ -22,6 +22,10 @@ class StatKeyword(Enum):
   rtx = 12
   lat = 13
   rttVar = 14
+  unstable = 15
+  lowBuf = 16
+  lambdaMin = 17
+  lambdaMax = 18
   unknown = 99
 
   def __str__(self):
@@ -30,14 +34,18 @@ class StatKeyword(Enum):
       StatKeyword.rttEst:'rtt_est_ms', StatKeyword.rttPrime:'rtt_prime_ms',\
       StatKeyword.lambdaD:'lambda_d', StatKeyword.lambdaC:'lambda',\
       StatKeyword.rtx:'rtx_total', StatKeyword.rescued:'rescued_total', StatKeyword.recovered:'recovered_total',
-      StatKeyword.lat:'lat_est_sec', StatKeyword.rttVar:'rtt_var', StatKeyword.unknown:'unknown'}[self]
+      StatKeyword.lat:'lat_est_sec', StatKeyword.rttVar:'rtt_var', StatKeyword.unknown:'unknown',
+      StatKeyword.lowBuf:'low_buf', StatKeyword.unstable:'unstable',
+      StatKeyword.lambdaMin:'lambda_min', StatKeyword.lambdaMax:'lambda_max'}[self]
 
 statKeywordToEntryMap = {StatKeyword.Dgen:'Dgen', StatKeyword.Darr:'Darr',\
     StatKeyword.bufTarget:'buf tar', StatKeyword.bufEstimate:'buf est', StatKeyword.bufPlayable:'buf play',\
     StatKeyword.rttEst:'rtt est', StatKeyword.rttPrime:'rtt prime raw',\
     StatKeyword.lambdaD:'lambda_d', StatKeyword.lambdaC:'lambda',\
     StatKeyword.rtx:'rtx', StatKeyword.rescued:'resc', StatKeyword.recovered:'recover',
-    StatKeyword.lat:'lat est', StatKeyword.rttVar:'rtt var'}
+    StatKeyword.lat:'lat est', StatKeyword.rttVar:'rtt var',
+    StatKeyword.lowBuf:'low_buf', StatKeyword.unstable:'unstable',
+    StatKeyword.lambdaMin:'lambda_min', StatKeyword.lambdaMax:'lambda_max'}
 statEntryToKeywordMap = {v: k for k, v in statKeywordToEntryMap.items()}
 
 def statKeywordToEntry(kw):
@@ -54,6 +62,8 @@ statRegexString = '(?P<stat_entry>'+statKeywordToEntry(StatKeyword.Dgen)+'|'+sta
   statKeywordToEntry(StatKeyword.rttEst)+'|'+statKeywordToEntry(StatKeyword.rttPrime)+'|'+\
   statKeywordToEntry(StatKeyword.lambdaD)+'|'+\
   statKeywordToEntry(StatKeyword.recovered)+'|'+statKeywordToEntry(StatKeyword.rescued)+'|'+statKeywordToEntry(StatKeyword.rtx)+'|'+\
+  statKeywordToEntry(StatKeyword.lowBuf)+'|'+statKeywordToEntry(StatKeyword.unstable)+'|'+\
+  statKeywordToEntry(StatKeyword.lambdaMin)+'|'+statKeywordToEntry(StatKeyword.lambdaMax)+'|'+\
   statKeywordToEntry(StatKeyword.lat)+')\\t(?P<value>[0-9.-]+)'
 
 statRegex = re.compile(statRegexString)
@@ -213,8 +223,9 @@ if __name__ == '__main__':
   # (str(StatKeyword.rtx), []), (str(StatKeyword.recovered), []), (str(StatKeyword.rescued), []), (str(StatKeyword.lat), [])])
 
   runBlock = OrderedDict([(StatKeyword.Dgen,0.), (StatKeyword.Darr,0.), (StatKeyword.bufTarget,0), (StatKeyword.bufEstimate,0),\
-  (StatKeyword.bufPlayable,0), (StatKeyword.rttEst, 0), (StatKeyword.rttPrime,0), (StatKeyword.lambdaD,0), (StatKeyword.lambdaC,0),\
-  (StatKeyword.rtx, 0), (StatKeyword.recovered, 0), (StatKeyword.rescued, 0), (StatKeyword.lat, 0)])
+  (StatKeyword.bufPlayable,0), (StatKeyword.rttEst, 0), (StatKeyword.rttPrime,0), (StatKeyword.lambdaD,0), \
+  (StatKeyword.rtx, 0), (StatKeyword.recovered, 0), (StatKeyword.rescued, 0), (StatKeyword.lat, 0), \
+  (StatKeyword.unstable, 0), (StatKeyword.lowBuf, 0), (StatKeyword.lambdaMin, 0), (StatKeyword.lambdaMax, 0)])
   statBlock = runBlock.copy()
 
   chaseTrackRegexString = 'phase Chasing finished in (?P<chase_time>[0-9]+) msec'
