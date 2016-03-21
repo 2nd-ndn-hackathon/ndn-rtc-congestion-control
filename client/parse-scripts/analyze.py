@@ -51,7 +51,7 @@ def statEntryToKeyword(stat):
 
 statRegexString = '(?P<stat_entry>'+statKeywordToEntry(StatKeyword.Dgen)+'|'+statKeywordToEntry(StatKeyword.Darr)+'|'+\
   statKeywordToEntry(StatKeyword.bufTarget)+'|'+statKeywordToEntry(StatKeyword.bufEstimate)+'|'+statKeywordToEntry(StatKeyword.bufPlayable)+'|'+\
-  statKeywordToEntry(StatKeyword.rttPrime)+'|'+\
+  statKeywordToEntry(StatKeyword.rttEst)+'|'+statKeywordToEntry(StatKeyword.rttPrime)+'|'+\
   statKeywordToEntry(StatKeyword.lambdaD)+'|'+\
   statKeywordToEntry(StatKeyword.recovered)+'|'+statKeywordToEntry(StatKeyword.rescued)+'|'+statKeywordToEntry(StatKeyword.rtx)+'|'+\
   statKeywordToEntry(StatKeyword.lat)+')\\t(?P<value>[0-9.-]+)'
@@ -213,7 +213,7 @@ if __name__ == '__main__':
   # (str(StatKeyword.rtx), []), (str(StatKeyword.recovered), []), (str(StatKeyword.rescued), []), (str(StatKeyword.lat), [])])
 
   runBlock = OrderedDict([(StatKeyword.Dgen,0.), (StatKeyword.Darr,0.), (StatKeyword.bufTarget,0), (StatKeyword.bufEstimate,0),\
-  (StatKeyword.bufPlayable,0), (StatKeyword.rttPrime,0), (StatKeyword.lambdaD,0), (StatKeyword.lambdaC,0),\
+  (StatKeyword.bufPlayable,0), (StatKeyword.rttEst, 0), (StatKeyword.rttPrime,0), (StatKeyword.lambdaD,0), (StatKeyword.lambdaC,0),\
   (StatKeyword.rtx, 0), (StatKeyword.recovered, 0), (StatKeyword.rescued, 0), (StatKeyword.lat, 0)])
   statBlock = runBlock.copy()
 
