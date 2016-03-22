@@ -1,6 +1,6 @@
 # Congestion Control for NDN-RTC
 ## Participants
-- Klaus Sheinder (University of Arizona)
+- Klaus Schneider (University of Arizona)
 - Hila Abraham (Washington University of St. Loius)
 - Giulio Grassi (University of Pierre et Marie Curie)
 - Chngyu Fan (Colorado State University)
