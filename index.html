@@ -53,10 +53,21 @@
 <a id="tasks" class="anchor" href="#tasks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Tasks</h2>
 
 <ul>
-<li>Creating an emulation environment for NDN-RTC (probably mini-NDN)</li>
-<li>Implementing the congestion control</li>
-<li>Evaluating the performance in multiple scenarios</li>
-<li>Presenting the results</li>
+<li>Run multi-consumer tests using ndncon on local testbed:</li>
+<ul>
+	<li><b>Start small:</b> 1 consumer, 2 consumers, 3 consumers</li>
+	<li><b>Goal:</b>Break ndncon/NFD - obtain unsatisfactory (from QoE standpoint) performance</li>
+	<li>Evaluating the performance in multiple scenarios</li>
+</ul>
+<li>Figure out root causes of poor perfomance</li>
+<ul>
+	<li>Parse crititcal NDN-RTC metrics:</li>
+	<ul>
+		<li>RTT', RTT estimation, Pipeline size, Buffer indicators</li>
+	</ul>
+</ul>
+<li>Come up with solution and propose changes to NDN-RTC and/or NFD</li>
+<li>Present results</li>
 </ul>
       </section>
       <footer>
