@@ -1,0 +1,92 @@
+\section{Introduction}
+
+\begin{frame}{Cellular Data Networks \& Signal Strength}
+
+\begin{itemize}
+\item Cellular data networks provide nearly ubiquitous coverage in most regions
+\item However, signal strength varies signifcantly in different areas
+\end{itemize}
+
+\centering
+\begin{figure}[!ht]
+  \centering
+    \includegraphics[width=0.5\textwidth]{images/vrssi.png}
+
+  \centering
+  {Signal varies by location for 6 drives over 17 km: DC to College Park (Fig 3 [1])}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Opportunaties For Saving Energy}
+
+\begin {center}
+\large \textbf{Data transfer is more expensive in attenuated signal}\normalsize\\
+\end {center}
+
+\begin{block}{Why?}
+\begin{itemize}
+\item Power consumption increases while device amplifies signal
+\item Bit rate drops when signal is weak
+\end{itemize}
+\end{block}
+
+\centering
+\begin{figure}[!ht]
+  \centering
+    \includegraphics[width=0.5\textwidth]{images/pVtVr.png}
+
+  \centering
+  {Power and Throughput vs. RSSI (Fig 1 [2])}
+\end{figure}
+  
+\end{frame}
+
+
+\begin{frame}{Saving Energy In Video Streaming \& Its Challenges}
+
+\begin {center}
+\large \textbf{Watching streamed videos while on a trip has become very popular among smartphone users}\normalsize\\
+\end {center}
+
+\begin {center}
+\large \textbf{How to save energy?}\normalsize\\
+\textbf{Download and buffer video only when signal is strong!}
+\end {center}
+
+\begin{block}{Challenges}
+\begin{itemize}
+\item Prediction must be performed at little energy cost.
+\item Location alone is not enough for signal prediction!
+\item How to get precise location and direction of a trip?
+\item What is a good signal?
+\item Appropriately considering radio tail overhead.
+\end{itemize}
+\end{block}
+
+\end{frame}
+
+
+\section{Background}
+
+\input{content/mina.tex}
+
+\input{content/mahdi.tex}
+
+\input{content/klaus.tex}
+
+
+\section{Our Ideas}
+
+\begin{frame}{Whatever}
+    \ldots
+\end{frame}
+
+\section{Summary}
+\begin{frame}{Summary}
+    \ldots
+\end{frame}
+
+
+\section{Bibliography}
+

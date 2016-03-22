@@ -1,0 +1,117 @@
+\section{Introduction}
+
+\begin{frame}{Outline}
+	
+	
+	
+	\large
+\textbf{
+	Motivation: Figure out what is wrong with NDN-RTC
+}
+~\\
+	\begin{enumerate}
+		\item RTT Estimation
+		\item Fixed rate thresholds ($\lambda_{min}, \lambda_{max}$)
+		\item Effect of NFD Access Strategy
+	\end{enumerate}
+	~\\
+	
+	Future work: Don't put Generation Delay into Cache
+	
+\end{frame}
+
+
+\begin{frame}{RTT Averaging is too slow}
+	
+	\includegraphics[width=\linewidth,page=1]{images/test8_1.pdf}
+	
+\end{frame}
+
+\begin{frame}{RTT Averaging is too slow}
+	
+	\includegraphics[width=\linewidth,page=2]{images/test8_1.pdf}
+	
+\end{frame}
+
+\begin{frame}{Result: Playout buffer doesn't adjust correctly}
+	
+	\includegraphics[width=\linewidth,page=6]{images/test8_1.pdf}
+	
+\end{frame}
+
+
+\begin{frame}{Problem: Fixed Rate Thresholds (``Lambda'')}
+	
+	\includegraphics[width=\linewidth,page=7]{images/test8_1.pdf}
+	
+	\textbf{Trade-Off: Reaching fresh data $\Leftrightarrow$ Causing Congestion}
+	\begin{itemize}
+	\item[$\Rightarrow$] More adaptive congestion window + consider buffer size
+%	\item[$\Rightarrow$] Rate-based design
+	\end{itemize} 
+\end{frame}
+
+
+\begin{frame}{Access Strategy causes huge problems}
+	
+	\includegraphics[width=\linewidth,page=2]{images/test8_5.pdf}
+	\textbf{
+	Access Strategy suppresses Retx for 100 ms!}
+	
+\end{frame}
+
+
+\begin{frame}{Access Strategy causes huge problems}
+	
+	\includegraphics[width=\linewidth,page=8]{images/test8_5.pdf}
+	
+\end{frame}
+
+
+\begin{frame}{Access Strategy causes huge problems}
+	
+	\includegraphics[width=\linewidth,page=6]{images/test8_5.pdf}
+	
+\end{frame}
+
+
+\begin{frame}{Future Work: Data Gen Delay}
+	
+	\includegraphics[width=\linewidth,page=1]{images/fib_agg.pdf}
+	~\\[1em]
+	
+	\large
+	\textbf{Data Generation Delay is used for RTT Estimation!
+	}
+	~\\[1em]
+	
+	\Large
+	
+	$RTT_{est} = RTT_{raw} - D_{gen}$
+\end{frame}
+
+
+\begin{frame}{Result: Adjusted RTT becomes Negative!}
+	
+	\includegraphics[width=\linewidth,page=1]{images/test8_5.pdf}
+	
+\end{frame}
+
+\begin{frame}{Workaround: NDNLP Tags}
+	
+	\includegraphics[width=\linewidth,page=1]{images/fib_agg.pdf}
+	
+	\begin{itemize}
+		\item Can't manipulate data packet
+		\item[$\Rightarrow$] Add NDNLP Header
+	\end{itemize}
+	
+\end{frame}
+
+\begin{frame}{Done}
+	\LARGE
+	
+	Thanks a lot!
+	
+\end{frame}
+

@@ -97,16 +97,15 @@ g.lambdas <- ggplot(lambda, aes (x=rts_ms/1000, y=value, color=variable)) +
 #facet_wrap(~ Node) 
 
 g.flags <- ggplot(flags, aes (x=rts_ms/1000, y=value, color=variable)) +
-  geom_bar(stat="identity",size=0.8) + 
+  geom_line(stat="identity") + 
   xlab("Time [s]") +
   ylab("Boolean") +
   ggtitle("Unstable/Low Buffer") +
   theme(legend.position="bottom")
 #facet_wrap(~ Node) 
-g.flags
 
 
-pdf(paste("../graphs/",filename,".pdf", sep=""), useDingbats=T, width=12)
+pdf(paste("../graphs/",filename,".pdf", sep=""), useDingbats=T, width=6, height=3.5)
 g.rtt
 g.rtt_est
 g.rtt.prime
@@ -114,9 +113,9 @@ g.dgen
 g.darr
 g.buf
 g.lambdas
+g.lambdad
 g.flags
 dev.off()
 #embed_fonts("../graphs/rates.pdf")
 
-summary(data$run)
 
